@@ -1,113 +1,105 @@
-var draggables = document.querySelectorAll('.draggable')
-var containers = document.querySelectorAll('.drag')
+/* The dragging code for '.draggable' from the demo above
+ * applies to this demo as well so it doesn't have to be repeated. */
 
+// enable draggables to be dropped into this
+interact('.dropzone').dropzone({
+    // only accept elements matching this CSS selector
+    accept: '.drag-drop',
+    // Require a 75% element overlap for a drop to be possible
+    overlap: 0.75,
 
+    // listen for drop related events:
 
-draggables.forEach(draggable => {
-    draggable.addEventListener('dragstart', () => {
-        containers = document.querySelectorAll('.drag')
-
-        containers.forEach(container => {
-            container.addEventListener('dragover', e => {
-                
-                document.querySelectorAll('.group').forEach(group => {
-                    if (group.textContent == "СЮДА"){
-                        group.remove()
-                    }
-                })
+    ondropactivate: function (event) {
+        // add active dropzone feedback
+        event.target.classList.add('drop-active')
+        event.relatedTarget.classList.add('dragging')
+    },
+    ondragenter: function (event) {
+        var draggableElement = event.relatedTarget
+        var dropzoneElement = event.target
         
-                e.preventDefault()
-                const afterElement = getDragAfterElement(container, e.clientX, e.clientY)
-                const draggable = document.querySelector('.dragging')
-                if (afterElement == null || container.classList.contains('group')) {
-                    container.appendChild(draggable)
-                } else {
-                    if (afterElement.parentElement == container)
-                     {container.insertBefore(draggable, afterElement)}
-                }
-            })
-        })
+        // feedback the possibility of a drop
+        dropzoneElement.classList.add('drop-target')
+        draggableElement.classList.add('can-drop')
+        // draggableElement.textContent = 'Dragged in'
 
-        draggable.classList.add('dragging')
-    })
+    },
+    ondragleave: function (event) {
+        // remove the drop feedback style
+        event.target.classList.remove('drop-target')
+        event.relatedTarget.classList.remove('can-drop')
+        // event.relatedTarget.textContent = 'Dragged out'
+    },
+    ondrop: function (event) {
+        // event.relatedTarget.textContent = 'Dropped'
 
-    draggable.addEventListener('dragend', () => {
-        if (!(document.getElementsByClassName(
-            'dragging'
-            )[0].parentElement.classList.contains('group')))
-        {$('.dragging').wrap("<div class='drag draggable group'></div>")}
-        
-
-        
-
-        document.querySelectorAll('.group').forEach(group => {
-            newDiv = document.createElement("div")
-            newDiv.classList.add('here')
-            newDiv.textContent = "СЮДА"
-            newDiv.style.position = "absolute"
-            newDiv.style.bottom = "0px"
-            newDiv.style.left = "0px"
-            newDiv.style.color = "red"
-            flag = true
-            let children = [...group.childNodes]
-            children.forEach(
-                child => {
-                    if (child.textContent == "СЮДА"){
-                        flag = false
-                    }
-                }
-            )
-            drags = group.querySelectorAll('.draggable')
-            drags[drags.length - 1].style.marginBottom = "1rem"
-            if (flag){
-                group.appendChild(newDiv)
-            }
-        })
-        
-        tiles = document.querySelectorAll('.group .draggable')
-        tiles.forEach(tile => {
-            sib = tile.nextSibling
-            if (sib != null) {
-                if (sib.nodeName != 'BR' && !sib.classList.contains('here')) {
-                    sib.parentElement.insertBefore(document.createElement('br'), sib)
-                    tile.style.marginBottom = 0
-                    // console.log('br')
-                } else if (sib.nextSibling != null) {
-                    sib.parentElement.insertBefore(document.createElement('br'), sib)
-                    tile.style.marginBottom = 0
-                    console.log(sib, 'br')
-                }
+        console.log(event)
+        const draggableElements = [...event.target.querySelectorAll('.drag-drop:not(.dragging)')]
+        left = draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect()
+            const offset = event._interaction.coords.cur.client.x - box.left - box.width / 3
+            // console.log(offset)
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child }
             } else {
-                tile.style.marginBottom = "1rem"
+                return closest
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element
+        if (left == null || event.target.classList.contains('group')) {
+                console.log("APPEND")
+                event.target.appendChild(event.relatedTarget)
+            } else {
+                console.log("INSERT")
+                // console.log(left, event.relatedTarget, event.target)
+                event.target.insertBefore(event.relatedTarget, left.parentElement)
+            }
+
+        // event.currentTarget.appendChild(event.relatedTarget)
+        event.relatedTarget.style.transform = "none"
+        event.relatedTarget.setAttribute('data-x', 0)
+        event.relatedTarget.setAttribute('data-y', 0)
+        if (!event.target.classList.contains('group')){
+            $('.dragging').wrap("<div class='group dropzone'></div>")
+        }
+    },
+    ondropdeactivate: function (event) {
+        // remove active dropzone feedback
+        event.target.classList.remove('drop-active')
+        event.target.classList.remove('drop-target')
+        event.relatedTarget.classList.remove('dragging')
+        document.querySelectorAll('.group').forEach(group => {
+            if (group.textContent == "") {
+                group.remove()
             }
         })
-
-        document.querySelectorAll('br').forEach(
-            br => {
-                if (br.previousSibling == null || br.nextSibling == null || br.nextSibling.nodeName == 'BR' || 
-                    br.nextSibling.classList.contains('here') && br.nextSibling.nextSibling.nodeName == 'BR' ||
-                    br.previousSibling.classList.contains('here') && br.previousSibling.previousSibling.nodeName == 'BR') {
-                    br.remove()
-                }
-            }
-        )
-        
-        draggable.classList.remove('dragging')
-        draggables = document.querySelectorAll('.draggable')
+    }
+})
+  
+interact('.drag-drop').draggable({
+    inertia: true,
+    modifiers: [
+    interact.modifiers.restrictRect({
+        endOnly: true
     })
+    ],
+    // autoScroll: true,
+    // dragMoveListener from the dragging demo above
+    listeners: { move: dragMoveListener }
 })
 
-function getDragAfterElement(container, x, y) {
-    const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')]
+
+function dragMoveListener (event) {
+    var target = event.target
+    // keep the dragged position in the data-x/data-y attributes
+    var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+    var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
     
-    return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect()
-        const offset_x = x - box.left
-        const offset_y = y - box.bottom
-        if (offset_x < 0 && offset_x > closest.offset_x || offset_y > 0 && x < box.right && offset_y < closest.offset_y) {
-            return { offset_x: offset_x, offset_y: offset_y, element: child }
-        } else {
-            return closest
-        }
-    }, { offset_x: Number.NEGATIVE_INFINITY, offset_y: Number.POSITIVE_INFINITY }).element
+    // translate the element
+    target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+    
+    // update the posiion attributes
+    target.setAttribute('data-x', x)
+    target.setAttribute('data-y', y)
+    
 }
