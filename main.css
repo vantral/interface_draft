@@ -1,6 +1,7 @@
 #inner-dropzone {
     min-height: 150px;
     text-align: center;
+    z-index: 1;
 }
 
 .dropzone {
@@ -27,6 +28,7 @@
 
 .drag-drop {
     display: inline-block;
+    z-index: 2;
     min-width: 40px;
     padding: 2em 0.5em;
     /* margin: 1rem 0 0 1rem; */
@@ -50,8 +52,10 @@
 .group {
     padding: 2rem;
     cursor: auto;
-    width: fit-content;
+    min-width: 20px;
+    min-height: 20px;
     display: inline-block;
+    vertical-align: middle;
 }
 
 .dropzone .group {
