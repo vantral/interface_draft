@@ -63,10 +63,6 @@ interact('.dropzone').dropzone({
         if (!event.target.classList.contains('group')){
             $('.dragging').wrap("<div class='group dropzone'></div>")
         }
-        var tiles = document.querySelectorAll('.dropzone .drag-drop')
-        tiles.forEach(tile => {
-            tile.setAttribute('data-x', 0)
-        })
     },
     ondropdeactivate: function (event) {
         box = event.relatedTarget.getBoundingClientRect()
@@ -108,6 +104,8 @@ interact('.drag-drop').draggable({
         target.style.position = "relative"
         target.style.top = "auto"
         
+        
+
         y = event._interaction.coords.cur.client.y
         dropzone = document.querySelector('#inner-dropzone')
         if (y > dropzone.getBoundingClientRect().bottom) {
@@ -118,6 +116,11 @@ interact('.drag-drop').draggable({
             if (group.textContent == "") {
                 group.remove()
             }
+        })
+
+        var tiles = document.querySelectorAll('.dropzone .drag-drop')
+        tiles.forEach(tile => {
+            tile.setAttribute('data-x', 0)
         })
         // console.log(event)
     },
