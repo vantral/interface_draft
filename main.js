@@ -63,6 +63,10 @@ interact('.dropzone').dropzone({
         if (!event.target.classList.contains('group')){
             $('.dragging').wrap("<div class='group dropzone'></div>")
         }
+        var tiles = document.querySelectorAll('.dropzone .drag-drop')
+        tiles.forEach(tile => {
+            tile.setAttribute('data-x', 0)
+        })
     },
     ondropdeactivate: function (event) {
         box = event.relatedTarget.getBoundingClientRect()
@@ -88,9 +92,15 @@ interact('.dropzone').dropzone({
 interact('.drag-drop').draggable({
     onstart: function (event) {
         console.log('onstart')
+        var tiles = document.querySelectorAll('.dropzone .drag-drop')
+        tiles.forEach(tile => {
+            if (tile.getAttribute('data-x') == 0){
+                tile.setAttribute('data-x', "-" + document.querySelector('#inner-dropzone').scrollLeft)
+            }
+        })
         let target = event.target
         let position = target.getBoundingClientRect()
-        target.style.position = "fixed"
+        target.style.position = "absolute"
         target.style.top = position.top + "px"
     },
     onend: function (event) {
@@ -124,7 +134,9 @@ interact('.drag-drop').draggable({
 
 
 function dragMoveListener (event) {
+    console.log('movelistener')
     var target = event.target
+    
     // keep the dragged position in the data-x/data-y attributes
     var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
     var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
